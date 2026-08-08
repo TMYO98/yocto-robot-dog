@@ -1,0 +1,17 @@
+[Unit]
+Description=Robot core controller (SocketCAN)
+Wants=systemd-networkd.service sys-subsystem-net-devices-can0.device
+After=systemd-networkd.service sys-subsystem-net-devices-can0.device
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/default/robot-core-controller
+ExecStart=/usr/bin/robot-core-controller $ROBOT_CAN_ARGS
+Restart=on-failure
+RestartSec=2
+# Real-time scheduling for the control loop. Remove if you don't need it.
+CPUSchedulingPolicy=fifo
+CPUSchedulingPriority=50
+
+[Install]
+WantedBy=multi-user.target

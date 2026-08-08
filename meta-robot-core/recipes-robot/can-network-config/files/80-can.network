@@ -1,0 +1,14 @@
+# Brings up every canX interface at boot. Bitrates must match the rest of the bus.
+[Match]
+Name=can*
+
+[CAN]
+# Nominal (arbitration) bitrate
+BitRate=1M
+SamplePoint=80%
+# CAN FD data-phase bitrate. Set FDMode=no for a classic-CAN-only bus.
+FDMode=yes
+DataBitRate=2M
+DataSamplePoint=75%
+# Automatically recover from bus-off
+RestartSec=100ms
