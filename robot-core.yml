@@ -1,0 +1,60 @@
+# kas build configuration:  kas build robot-core.yml
+header:
+  version: 14
+
+machine: raspberrypi4-64     # Pi 5: raspberrypi5
+distro: poky
+target: robot-core-image
+
+repos:
+  robot-core:                # this repository
+    layers:
+      meta-robot-core:
+
+  poky:
+    url: https://git.yoctoproject.org/poky
+    branch: scarthgap
+    layers:
+      meta:
+      meta-poky:
+
+  meta-openembedded:
+    url: https://git.openembedded.org/meta-openembedded
+    branch: scarthgap
+    layers:
+      meta-oe:
+
+  meta-raspberrypi:
+    url: https://github.com/agherzan/meta-raspberrypi.git
+    branch: scarthgap
+
+local_conf_header:
+  base: |
+    INIT_MANAGER = "systemd"
+    LICENSE_FLAGS_ACCEPTED = "synaptics-killswitch"
+    ENABLE_UART = "1"
+    IMAGE_FSTYPES = "wic.bz2 wic.bmap"
+    # Development only: root login with no password. Remove for production.
+    EXTRA_IMAGE_FEATURES = "allow-empty-password empty-root-password allow-root-login"
+
+  # ---- Waveshare 2-CH CAN FD HAT (MCP2518FD), factory-default "mode A" ----
+  # can0 = SPI0 CE0, INT on GPIO25; can1 = SPI1 CE0, INT on GPIO24.
+  can-hat: |
+    ENABLE_SPI_BUS = "1"
+    RPI_KERNEL_DEVICETREE_OVERLAYS:append = " overlays/mcp251xfd.dtbo overlays/spi1-3cs.dtbo"
+    RPI_EXTRA_CONFIG = "\n\
+    # CAN FD HAT\n\
+    dtoverlay=spi1-3cs\n\
+    dtoverlay=mcp251xfd,spi0-0,interrupt=25\n\
+    dtoverlay=mcp251xfd,spi1-0,interrupt=24\n\
+    "
+
+  # ---- Alternative: MCP2515 classic-CAN HAT (e.g. Waveshare RS485 CAN HAT) ----
+  # Replace the can-hat block above with this, set FDMode=no in 80-can.network,
+  # and set CAN_OSCILLATOR to the crystal printed on your board.
+  #
+  # can-hat: |
+  #   ENABLE_SPI_BUS = "1"
+  #   ENABLE_CAN = "1"
+  #   CAN_OSCILLATOR = "12000000"
+  #   CAN0_INTERRUPT_PIN = "25"
